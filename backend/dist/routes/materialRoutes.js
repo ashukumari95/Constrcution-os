@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const materialController_1 = require("../controllers/materialController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.authenticateToken);
+router.get('/', materialController_1.getMaterials);
+router.post('/', materialController_1.createMaterial);
+router.get('/inventory', materialController_1.getInventory);
+router.post('/inventory', materialController_1.addInventoryItem);
+exports.default = router;

@@ -1,0 +1,335 @@
+// --- Contractor Management ---
+model Contractor {
+  id             String       @id @default(uuid())
+  companyName    String
+  contactPerson  String
+  email          String?
+  phone          String?
+  status         String       @default("ACTIVE") // ACTIVE, INACTIVE, BLACKLISTED
+  contractValue  Float        @default(0)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  projects       Project[]    @relation("ContractorProjects")
+  workers        Worker[]
+  users          User[]       @relation("ContractorUsers")
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// --- Labour Management ---
+model Worker {
+  id             String       @id @default(uuid())
+  firstName      String
+  lastName       String
+  category       String       // Mason, Carpenter, Electrician, Plumber, Helper, Supervisor, Equipment Operator
+  type           String       // SKILLED, UNSKILLED, SEMI_SKILLED
+  dailyRate      Float        @default(0)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  contractorId   String?
+  contractor     Contractor?  @relation(fields: [contractorId], references: [id])
+  
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id])
+  
+  attendances    LabourAttendance[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model LabourAttendance {
+  id             String       @id @default(uuid())
+  date           DateTime
+  status         String       @default("PRESENT") // PRESENT, ABSENT, HALF_DAY
+  checkIn        DateTime?
+  checkOut       DateTime?
+  overtimeHours  Float        @default(0)
+  
+  workerId       String
+  worker         Worker       @relation(fields: [workerId], references: [id])
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  siteId         String?
+  site           Site?        @relation(fields: [siteId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// --- Material & Vendor Management ---
+model Material {
+  id             String       @id @default(uuid())
+  name           String
+  code           String
+  category       String
+  unit           String
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  inventories    ProjectInventory[]
+  poItems        PurchaseOrderItem[]
+  receiptItems   MaterialReceiptItem[]
+  consumptions   MaterialConsumption[]
+  requests       PurchaseRequestItem[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Vendor {
+  id             String       @id @default(uuid())
+  name           String
+  contactPerson  String
+  email          String?
+  phone          String?
+  performance    Float        @default(0)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  purchaseOrders PurchaseOrder[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model ProjectInventory {
+  id             String       @id @default(uuid())
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+  
+  requiredQuantity Float      @default(0)
+  receivedQuantity Float      @default(0)
+  consumedQuantity Float      @default(0)
+  reorderLevel     Float      @default(0)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@unique([projectId, materialId])
+}
+
+// --- Procurement Workflow ---
+model PurchaseRequest {
+  id             String       @id @default(uuid())
+  prNumber       String
+  date           DateTime     @default(now())
+  status         String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  siteId         String?
+  site           Site?        @relation(fields: [siteId], references: [id])
+  
+  requestedById  String
+  requestedBy    User         @relation("PRRequester", fields: [requestedById], references: [id])
+  
+  approvedById   String?
+  approvedBy     User?        @relation("PRApprover", fields: [approvedById], references: [id])
+  
+  items          PurchaseRequestItem[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model PurchaseRequestItem {
+  id             String       @id @default(uuid())
+  quantity       Float
+  expectedDate   DateTime?
+  
+  purchaseRequestId String
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+}
+
+model PurchaseOrder {
+  id             String       @id @default(uuid())
+  poNumber       String
+  expectedDelivery DateTime?
+  status         String       @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, ORDERED, PARTIALLY_RECEIVED, RECEIVED, CANCELLED
+  
+  vendorId       String
+  vendor         Vendor       @relation(fields: [vendorId], references: [id])
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  items          PurchaseOrderItem[]
+  receipts       MaterialReceipt[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model PurchaseOrderItem {
+  id             String       @id @default(uuid())
+  quantity       Float
+  rate           Float
+  tax            Float        @default(0)
+  total          Float
+  
+  poId           String
+  po             PurchaseOrder @relation(fields: [poId], references: [id])
+  
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+}
+
+model MaterialReceipt {
+  id             String       @id @default(uuid())
+  receiptNumber  String
+  receivedDate   DateTime     @default(now())
+  
+  poId           String
+  po             PurchaseOrder @relation(fields: [poId], references: [id])
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  receivedById   String
+  receivedBy     User         @relation("MaterialReceiver", fields: [receivedById], references: [id])
+  
+  items          MaterialReceiptItem[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model MaterialReceiptItem {
+  id             String       @id @default(uuid())
+  quantity       Float
+  
+  receiptId      String
+  receipt        MaterialReceipt @relation(fields: [receiptId], references: [id])
+  
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+}
+
+model MaterialConsumption {
+  id             String       @id @default(uuid())
+  date           DateTime     @default(now())
+  quantity       Float
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  siteId         String?
+  site           Site?        @relation(fields: [siteId], references: [id])
+  
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+  
+  usedById       String
+  usedBy         User         @relation("MaterialConsumer", fields: [usedById], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// --- Operations & Finance ---
+model DailyProgressReport {
+  id             String       @id @default(uuid())
+  date           DateTime
+  manpowerCount  Int          @default(0)
+  workCompleted  String?
+  issues         String?
+  nextDayPlan    String?
+  status         String       @default("DRAFT") // DRAFT, SUBMITTED, APPROVED
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  siteId         String?
+  site           Site?        @relation(fields: [siteId], references: [id])
+  
+  preparedById   String
+  preparedBy     User         @relation("DPRPreparer", fields: [preparedById], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Issue {
+  id             String       @id @default(uuid())
+  title          String
+  description    String?
+  type           String       @default("GENERAL") // MATERIAL_DELAY, DESIGN_CLARIFICATION, LABOUR_SHORTAGE, QUALITY, EQUIPMENT, SCHEDULE, GENERAL
+  priority       String       @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status         String       @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  siteId         String?
+  site           Site?        @relation(fields: [siteId], references: [id])
+  
+  reportedById   String
+  reportedBy     User         @relation("IssueReporter", fields: [reportedById], references: [id])
+  
+  assignedToId   String?
+  assignedTo     User?        @relation("IssueAssignee", fields: [assignedToId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Budget {
+  id             String       @id @default(uuid())
+  category       String
+  amount         Float
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Expense {
+  id             String       @id @default(uuid())
+  title          String
+  amount         Float
+  date           DateTime     @default(now())
+  category       String?
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  recordedById   String
+  recordedBy     User         @relation("ExpenseRecorder", fields: [recordedById], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Invoice {
+  id             String       @id @default(uuid())
+  invoiceNumber  String
+  amount         Float
+  status         String       @default("PENDING") // PENDING, PAID, OVERDUE, CANCELLED
+  dueDate        DateTime?
+  
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}

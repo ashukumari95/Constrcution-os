@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15
+    container_name: constructionos-db
+    restart: always
+    environment:
+      POSTGRES_USER: constructionos_user
+      POSTGRES_PASSWORD: constructionos_password
+      POSTGRES_DB: constructionos
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

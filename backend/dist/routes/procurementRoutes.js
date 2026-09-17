@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const procurementController_1 = require("../controllers/procurementController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.authenticateToken);
+router.get('/pr', procurementController_1.getPurchaseRequests);
+router.post('/pr', procurementController_1.createPurchaseRequest);
+router.get('/po', procurementController_1.getPurchaseOrders);
+router.post('/po', procurementController_1.createPurchaseOrder);
+router.post('/receipts', procurementController_1.createMaterialReceipt);
+router.post('/consumption', procurementController_1.consumeMaterial);
+exports.default = router;

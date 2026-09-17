@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const globalController_1 = require("../controllers/globalController");
+const router = express_1.default.Router();
+router.use(authMiddleware_1.authenticateToken);
+router.get('/tasks', globalController_1.getGlobalTasks);
+router.get('/boq', globalController_1.getGlobalBoq);
+router.get('/procurement', globalController_1.getGlobalProcurement);
+router.get('/issues', globalController_1.getGlobalIssues);
+router.get('/labour', globalController_1.getGlobalLabour);
+router.get('/dpr', globalController_1.getGlobalDpr);
+router.get('/finance', globalController_1.getGlobalFinance);
+router.get('/documents', globalController_1.getGlobalDocuments);
+router.get('/users', globalController_1.getGlobalUsers);
+exports.default = router;
