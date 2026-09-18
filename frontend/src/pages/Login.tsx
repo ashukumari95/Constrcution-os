@@ -32,8 +32,13 @@ export function Login() {
   useEffect(() => {
     const fetchTenant = async () => {
       try {
-        const hostname = window.location.hostname;
-        const res = await api.get(`/auth/tenant?hostname=${hostname}`);
+        const workspaceSlug = window.location.pathname.match(/^\/workspace\/([^\/]+)/)?.[1];
+        if (!workspaceSlug) {
+          setTenant(null);
+          setTenantLoading(false);
+          return;
+        }
+        const res = await api.get(`/auth/tenant?slug=${workspaceSlug}`);
         setTenant(res.data);
       } catch (err: any) {
         // If 404, we just remain tenant-less
@@ -68,21 +73,7 @@ export function Login() {
   const handleWorkspaceResolve = (e: React.FormEvent) => {
     e.preventDefault();
     if (workspaceUrl) {
-      const protocol = window.location.protocol;
-      const port = window.location.port ? `:${window.location.port}` : '';
-      
-      // Basic approach: redirect to subdomain.localhost if in dev, else subdomain.domain.com
-      const currentDomain = window.location.hostname;
-      
-      // If we are currently on localhost, prepend workspaceUrl + .localhost
-      let newDomain = '';
-      if (currentDomain === 'localhost' || currentDomain === '127.0.0.1') {
-        newDomain = `${workspaceUrl}.localhost`;
-      } else {
-        newDomain = `${workspaceUrl}.${currentDomain}`;
-      }
-      
-      window.location.href = `${protocol}//${newDomain}${port}/login`;
+      window.location.href = `/workspace/${workspaceUrl}/login`;
     }
   };
 

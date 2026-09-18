@@ -36,19 +36,7 @@ export function Register() {
 
       const subdomain = response.data.user.organizationSubdomain;
       if (subdomain) {
-        const protocol = window.location.protocol;
-        const port = window.location.port ? `:${window.location.port}` : '';
-        const currentDomain = window.location.hostname;
-        
-        let newDomain = '';
-        if (currentDomain === 'localhost' || currentDomain === '127.0.0.1') {
-          newDomain = `${subdomain}.localhost`;
-        } else {
-          // In production, we assume we're on the root domain when registering
-          newDomain = `${subdomain}.${currentDomain}`;
-        }
-        
-        window.location.href = `${protocol}//${newDomain}${port}/`;
+        window.location.href = `/workspace/${subdomain}/`;
       } else {
         navigate('/');
       }

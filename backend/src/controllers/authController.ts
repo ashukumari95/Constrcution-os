@@ -316,21 +316,25 @@ export const resetPassword = async (req: Request, res: Response): Promise<any> =
 
 export const getTenantBranding = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { hostname } = req.query;
+    const { hostname, slug } = req.query;
 
-    if (!hostname || typeof hostname !== 'string') {
-      return res.status(400).json({ message: 'Hostname is required' });
+    if (!hostname && !slug) {
+      return res.status(400).json({ message: 'Hostname or slug is required' });
     }
 
-    // Basic subdomain extraction (assumes first part of hostname is subdomain if it has more than 1 dot, or if it's .localhost)
     let subdomain = '';
     
-    if (hostname.includes('.localhost')) {
-      subdomain = hostname.split('.localhost')[0];
-    } else {
-      const parts = hostname.split('.');
-      if (parts.length >= 3) {
-        subdomain = parts[0];
+    if (slug && typeof slug === 'string') {
+      subdomain = slug;
+    } else if (hostname && typeof hostname === 'string') {
+      // Basic subdomain extraction (assumes first part of hostname is subdomain if it has more than 1 dot, or if it's .localhost)
+      if (hostname.includes('.localhost')) {
+        subdomain = hostname.split('.localhost')[0];
+      } else {
+        const parts = hostname.split('.');
+        if (parts.length >= 3) {
+          subdomain = parts[0];
+        }
       }
     }
 
@@ -348,12 +352,14 @@ export const getTenantBranding = async (req: Request, res: Response): Promise<an
       });
     }
 
+    const orConditions: any[] = [{ subdomain }];
+    if (hostname && typeof hostname === 'string') {
+      orConditions.push({ customDomain: hostname });
+    }
+
     const org = await prisma.organization.findFirst({
       where: {
-        OR: [
-          { subdomain },
-          { customDomain: hostname }
-        ]
+        OR: orConditions
       },
       select: {
         id: true,

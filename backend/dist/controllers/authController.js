@@ -281,19 +281,24 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.resetPassword = resetPassword;
 const getTenantBranding = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { hostname } = req.query;
-        if (!hostname || typeof hostname !== 'string') {
-            return res.status(400).json({ message: 'Hostname is required' });
+        const { hostname, slug } = req.query;
+        if (!hostname && !slug) {
+            return res.status(400).json({ message: 'Hostname or slug is required' });
         }
-        // Basic subdomain extraction (assumes first part of hostname is subdomain if it has more than 1 dot, or if it's .localhost)
         let subdomain = '';
-        if (hostname.includes('.localhost')) {
-            subdomain = hostname.split('.localhost')[0];
+        if (slug && typeof slug === 'string') {
+            subdomain = slug;
         }
-        else {
-            const parts = hostname.split('.');
-            if (parts.length >= 3) {
-                subdomain = parts[0];
+        else if (hostname && typeof hostname === 'string') {
+            // Basic subdomain extraction (assumes first part of hostname is subdomain if it has more than 1 dot, or if it's .localhost)
+            if (hostname.includes('.localhost')) {
+                subdomain = hostname.split('.localhost')[0];
+            }
+            else {
+                const parts = hostname.split('.');
+                if (parts.length >= 3) {
+                    subdomain = parts[0];
+                }
             }
         }
         if (!subdomain) {
@@ -308,12 +313,13 @@ const getTenantBranding = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 primaryColor: '#0f172a' // Slate 900
             });
         }
+        const orConditions = [{ subdomain }];
+        if (hostname && typeof hostname === 'string') {
+            orConditions.push({ customDomain: hostname });
+        }
         const org = yield prisma_1.default.organization.findFirst({
             where: {
-                OR: [
-                    { subdomain },
-                    { customDomain: hostname }
-                ]
+                OR: orConditions
             },
             select: {
                 id: true,
