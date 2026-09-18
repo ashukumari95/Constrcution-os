@@ -18,3 +18,5 @@ coverage/
 
 uploads/
 **/uploads/
+
+frontend/dist/
