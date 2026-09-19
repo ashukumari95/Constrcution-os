@@ -68,10 +68,6 @@ function WorkspaceApp({ slug }: { slug: string }) {
             <Route element={<ProtectedRoute requiredPermission="settings.manage" />}>
               <Route path="/imports" element={<ImportCenter />} />
             </Route>
-            
-            <Route element={<ProtectedRoute requiredPermission="all" />}>
-              <Route path="/platform-admin" element={<SuperAdminDashboard />} />
-            </Route>
           </Route>
         </Route>
         
@@ -86,7 +82,18 @@ function GlobalApp() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/platform-admin/login" element={<Login isPlatformAdmin={true} />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Platform Admin Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route element={<ProtectedRoute requiredPermission="all" />}>
+              <Route path="/platform-admin" element={<SuperAdminDashboard />} />
+            </Route>
+          </Route>
+        </Route>
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

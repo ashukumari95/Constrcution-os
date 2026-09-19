@@ -15,7 +15,7 @@ interface TenantBranding {
   loginBackground?: string | null;
 }
 
-export function Login() {
+export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
@@ -32,6 +32,18 @@ export function Login() {
   useEffect(() => {
     const fetchTenant = async () => {
       try {
+        if (isPlatformAdmin) {
+          setTenant({
+            id: 'platform',
+            name: 'ConstructionOS Platform',
+            isSuperAdmin: true,
+            logoUrl: null,
+            primaryColor: '#1e293b' // slate-800 for platform
+          });
+          setTenantLoading(false);
+          return;
+        }
+
         const workspaceSlug = window.location.pathname.match(/^\/workspace\/([^\/]+)/)?.[1];
         if (!workspaceSlug) {
           setTenant(null);
@@ -62,7 +74,12 @@ export function Login() {
       });
 
       setAuth(response.data.user, response.data.token);
-      navigate('/');
+      
+      if (response.data.user.role === 'SUPER_ADMIN') {
+        navigate('/platform-admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
     } finally {
@@ -143,6 +160,12 @@ export function Login() {
                   Create a workspace
                 </Link>
               </p>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <Link to="/platform-admin/login" className="text-sm font-medium text-slate-500 hover:text-slate-700">
+                Platform Admin Login
+              </Link>
             </div>
           </div>
         </div>
