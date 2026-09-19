@@ -95,7 +95,7 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
     setWorkspaceUrlError('');
     if (workspaceUrl) {
       if (workspaceUrl.includes('@')) {
-        setWorkspaceUrlError('Please enter your workspace slug, or use Platform Admin Login.');
+        setWorkspaceUrlError('Please enter a valid workspace slug.');
         return;
       }
       window.location.href = `/workspace/${workspaceUrl}/login`;
@@ -173,12 +173,6 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
                   Create a workspace
                 </Link>
               </p>
-            </div>
-            
-            <div className="mt-4 text-center">
-              <Link to="/platform-admin/login" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Platform Admin Login
-              </Link>
             </div>
           </div>
         </div>

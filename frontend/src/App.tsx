@@ -82,7 +82,7 @@ function GlobalApp() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/platform-admin/login" element={<Login isPlatformAdmin={true} />} />
+        <Route path="/admin" element={<Login isPlatformAdmin={true} />} />
         <Route path="/register" element={<Register />} />
         
         {/* Platform Admin Protected Routes */}
