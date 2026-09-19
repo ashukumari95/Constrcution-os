@@ -87,9 +87,16 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
     }
   };
 
+  const [workspaceUrlError, setWorkspaceUrlError] = useState('');
+
   const handleWorkspaceResolve = (e: React.FormEvent) => {
     e.preventDefault();
+    setWorkspaceUrlError('');
     if (workspaceUrl) {
+      if (workspaceUrl.includes('@')) {
+        setWorkspaceUrlError('Please enter your workspace slug, or use Platform Admin Login.');
+        return;
+      }
       window.location.href = `/workspace/${workspaceUrl}/login`;
     }
   };
@@ -141,6 +148,11 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
                     .constructionos.com
                   </span>
                 </div>
+                {workspaceUrlError && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {workspaceUrlError}
+                  </p>
+                )}
               </div>
 
               <div>
