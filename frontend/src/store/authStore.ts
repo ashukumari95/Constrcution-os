@@ -24,20 +24,22 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
+  user: JSON.parse(localStorage.getItem('constructionos_user') || 'null'),
   token: localStorage.getItem('constructionos_token'),
   isAuthenticated: !!localStorage.getItem('constructionos_token'),
   setAuth: (user, token) => {
     localStorage.setItem('constructionos_token', token);
+    localStorage.setItem('constructionos_user', JSON.stringify(user));
     set({ user, token, isAuthenticated: true });
   },
   logout: () => {
     localStorage.removeItem('constructionos_token');
+    localStorage.removeItem('constructionos_user');
     set({ user: null, token: null, isAuthenticated: false });
   },
   hasPermission: (permission: string) => {
     const user = get().user;
     if (!user) return false;
-    return user.permissions.includes('all') || user.permissions.includes(permission);
+    return user.permissions.includes('*') || user.permissions.includes('all') || user.permissions.includes(permission);
   },
 }));
