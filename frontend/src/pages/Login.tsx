@@ -31,6 +31,7 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
 
   useEffect(() => {
     const fetchTenant = async () => {
+      setTenantLoading(true);
       try {
         if (isPlatformAdmin) {
           setTenant({
@@ -60,7 +61,7 @@ export function Login({ isPlatformAdmin = false }: { isPlatformAdmin?: boolean }
       }
     };
     fetchTenant();
-  }, []);
+  }, [isPlatformAdmin]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
