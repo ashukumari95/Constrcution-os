@@ -26,7 +26,7 @@ import { cn } from '../../lib/utils';
 
 export function Sidebar() {
   const location = useLocation();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, user } = useAuthStore();
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
@@ -54,7 +54,9 @@ export function Sidebar() {
     { name: 'Platform Admin', path: '/platform-admin', icon: ShieldAlert, permission: 'all' },
   ];
 
-  const filteredNavItems = navItems.filter(item => hasPermission(item.permission));
+  const filteredNavItems = user?.role === 'SUPER_ADMIN'
+    ? navItems.filter(item => item.name === 'Platform Admin')
+    : navItems.filter(item => item.name !== 'Platform Admin' && hasPermission(item.permission));
 
   return (
     <aside className="w-64 bg-slate-950 text-slate-300 flex flex-col h-full border-r border-slate-800">
